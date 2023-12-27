@@ -6,51 +6,44 @@ class GildedRose
 
   def update_quality()
     @items.each do |item|
-      if item.name != "Aged Brie" and item.name != "Backstage passes to a TAFKAL80ETC concert"
-        if item.quality > 0
-          if item.name != "Sulfuras, Hand of Ragnaros"
-            item.quality = item.quality - 1
-          end
-        end
+      case item.name
+      when "Aged Brie"
+        item.quality = [item.quality + 1, 50].min if item.quality < 50
+      when "Backstage passes to a TAFKAL80ETC concert"
+        item.quality = [item.quality + quality_increment(item.sell_in), 50].min
+      when "Sulfuras, Hand of Ragnaros"
+        # Sulfuras does not change
       else
-        if item.quality < 50
-          item.quality = item.quality + 1
-          if item.name == "Backstage passes to a TAFKAL80ETC concert"
-            if item.sell_in < 11
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-            if item.sell_in < 6
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-          end
-        end
+        item.quality = [item.quality - quality_decrement(item.sell_in), 0].max
       end
-      if item.name != "Sulfuras, Hand of Ragnaros"
-        item.sell_in = item.sell_in - 1
-      end
+  
+      item.sell_in -= 1 unless item.name == "Sulfuras, Hand of Ragnaros"
+  
       if item.sell_in < 0
-        if item.name != "Aged Brie"
-          if item.name != "Backstage passes to a TAFKAL80ETC concert"
-            if item.quality > 0
-              if item.name != "Sulfuras, Hand of Ragnaros"
-                item.quality = item.quality - 1
-              end
-            end
-          else
-            item.quality = item.quality - item.quality
-          end
+        case item.name
+        when "Aged Brie"
+          item.quality = [item.quality + 1, 50].min if item.quality < 50
+        when "Backstage passes to a TAFKAL80ETC concert"
+          item.quality = 0
         else
-          if item.quality < 50
-            item.quality = item.quality + 1
-          end
+          item.quality = [item.quality - quality_decrement(item.sell_in), 0].max
         end
       end
     end
   end
+  
+  # Helper methods
+  def quality_increment(sell_in)
+    return 3 if sell_in <= 5
+    return 2 if sell_in <= 10
+    1
+  end
+  
+  def quality_decrement(sell_in)
+    return 2 if sell_in < 0
+    1
+  end
+
 end
 
 class Item
